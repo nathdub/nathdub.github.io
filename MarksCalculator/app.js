@@ -21,12 +21,12 @@ function generateInputBoxes() {
 
         const markInput = document.createElement('input');
         markInput.type = 'text';
-        markInput.placeholder = `Mark ${i + 1} (Ai/Bi)`;
+        markInput.placeholder = `note ${i + 1} : (50/100)`;
         group.appendChild(markInput);
 
         const weightInput = document.createElement('input');
         weightInput.type = 'text';
-        weightInput.placeholder = `Weight ${i + 1} (Ci%)`;
+        weightInput.placeholder = `importance note ${i + 1} : (50%)`;
         group.appendChild(weightInput);
 
         testsInputsContainer.appendChild(group);
@@ -34,7 +34,7 @@ function generateInputBoxes() {
     }
 
     const calculateBtn = document.createElement('button');
-    calculateBtn.textContent = 'Calculate Result';
+    calculateBtn.textContent = 'Calculer';
     calculateBtn.addEventListener('click', calculateResult.bind(null, inputGroups));
     testsInputsContainer.appendChild(calculateBtn);
 }
@@ -67,12 +67,20 @@ function calculateResult(inputGroups) {
         const bestPossibleMean = (sumWeightedMarks + (1 - sumWeights)) * 100;
         const bestPossibleMeanNormalized = (sumWeightedMarks + (1 - sumWeights)) * 20;
 
+        let minimalMarksMessage = '';
+        if (minimalMarks < 0) {
+            minimalMarksMessage = 'GG mon reuf, tu peux signer que tu réussirais 🥳 (ps: je décline toute responsabilité néanmoins) ';
+        } else if (minimalMarks > 100) {
+            minimalMarksMessage = "Mon reuf, euh comment dire, j'ai bien peur que tu sois foutu 😅";
+        }
+
         resultDisplay.innerHTML = `
-            <p><strong>Minimal Marks: ${minimalMarks.toFixed(2)}% = ${minimalMarksNormalized.toFixed(2)}/20</strong></p>
-            <p>Remaining Weight: ${remainingWeight.toFixed(2)}%</p>
-            <p>Actual Mean: ${actualMean.toFixed(2)}% = ${actualMeanNormalized.toFixed(2)}/20</p>
-            <p>Worst Possible Mean: ${worstPossibleMean.toFixed(2)}% = ${worstPossibleMeanNormalized.toFixed(2)}/20</p>
-            <p>Best Possible Mean: ${bestPossibleMean.toFixed(2)}% = ${bestPossibleMeanNormalized.toFixed(2)}/20</p>
+            <p>${minimalMarksMessage}</p>
+            <p><strong>Note minimale à obtenir pour réussir: ${minimalMarks.toFixed(2)}% = ${minimalMarksNormalized.toFixed(2)}/20</strong></p>
+            <p>Cotation restante: ${remainingWeight.toFixed(2)}%</p>
+            <p>Moyenne actuelle: ${actualMean.toFixed(2)}% = ${actualMeanNormalized.toFixed(2)}/20</p>
+            <p>Pire moyenne possible (tu signes tt en gros): ${worstPossibleMean.toFixed(2)}% = ${worstPossibleMeanNormalized.toFixed(2)}/20</p>
+            <p>Meilleure moyenne possible: ${bestPossibleMean.toFixed(2)}% = ${bestPossibleMeanNormalized.toFixed(2)}/20</p>
         `;
     }
 }
