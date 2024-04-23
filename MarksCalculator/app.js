@@ -20,22 +20,17 @@ function generateInputBoxes() {
         group.classList.add('input-group');
 
         const markInput = document.createElement('input');
-        markInput.type = 'number';
-        markInput.placeholder = `Mark ${i + 1}`;
+        markInput.type = 'text';
+        markInput.placeholder = `Mark ${i + 1} (Ai/Bi)`;
         group.appendChild(markInput);
 
-        const maxMarkInput = document.createElement('input');
-        maxMarkInput.type = 'number';
-        maxMarkInput.placeholder = `Max Mark ${i + 1}`;
-        group.appendChild(maxMarkInput);
-
         const weightInput = document.createElement('input');
-        weightInput.type = 'number';
-        weightInput.placeholder = `Weight ${i + 1}`;
+        weightInput.type = 'text';
+        weightInput.placeholder = `Weight ${i + 1} (Ci%)`;
         group.appendChild(weightInput);
 
         testsInputsContainer.appendChild(group);
-        inputGroups.push([markInput, maxMarkInput, weightInput]);
+        inputGroups.push([markInput, weightInput]);
     }
 
     const calculateBtn = document.createElement('button');
@@ -45,24 +40,39 @@ function generateInputBoxes() {
 }
 
 function calculateResult(inputGroups) {
-    let result = 0;
-    let totalWeight = 0;
+    let sumWeightedMarks = 0;
+    let sumWeights = 0;
 
-    for (const [markInput, maxMarkInput, weightInput] of inputGroups) {
-        const mark = parseFloat(markInput.value);
-        const maxMark = parseFloat(maxMarkInput.value);
-        const weight = parseFloat(weightInput.value);
+    for (const [markInput, weightInput] of inputGroups) {
+        const [markValue, maxMarkValue] = markInput.value.split('/').map(parseFloat);
+        const weightValue = parseFloat(weightInput.value.replace('%', '')) / 100;
 
-        if (!isNaN(mark) && !isNaN(maxMark) && !isNaN(weight) && maxMark > 0) {
-            const weightedMark = (mark / maxMark) * weight;
-            result += weightedMark;
-            totalWeight += weight;
+        if (!isNaN(markValue) && !isNaN(maxMarkValue) && !isNaN(weightValue) && maxMarkValue > 0) {
+            const weightedMark = (markValue / maxMarkValue) * weightValue;
+            sumWeightedMarks += weightedMark;
+            sumWeights += weightValue;
         }
     }
 
-    if (totalWeight === 0) {
+    if (sumWeights === 0) {
         resultDisplay.textContent = 'Invalid input data.';
     } else {
-        resultDisplay.textContent = `Result: ${(result / totalWeight * 100).toFixed(2)}%`;
+        const minimalMarks = (0.5 - sumWeightedMarks) / (1 - sumWeights) * 100;
+        const minimalMarksNormalized = (0.5 - sumWeightedMarks) / (1 - sumWeights) * 20;
+        const remainingWeight = (1 - sumWeights) * 100;
+        const actualMean = (sumWeightedMarks / sumWeights) * 100;
+        const actualMeanNormalized = (sumWeightedMarks / sumWeights) * 20;
+        const worstPossibleMean = sumWeightedMarks * 100;
+        const worstPossibleMeanNormalized = sumWeightedMarks * 20;
+        const bestPossibleMean = (sumWeightedMarks + (1 - sumWeights)) * 100;
+        const bestPossibleMeanNormalized = (sumWeightedMarks + (1 - sumWeights)) * 20;
+
+        resultDisplay.innerHTML = `
+            <p><strong>Minimal Marks: ${minimalMarks.toFixed(2)}% = ${minimalMarksNormalized.toFixed(2)}/20</strong></p>
+            <p>Remaining Weight: ${remainingWeight.toFixed(2)}%</p>
+            <p>Actual Mean: ${actualMean.toFixed(2)}% = ${actualMeanNormalized.toFixed(2)}/20</p>
+            <p>Worst Possible Mean: ${worstPossibleMean.toFixed(2)}% = ${worstPossibleMeanNormalized.toFixed(2)}/20</p>
+            <p>Best Possible Mean: ${bestPossibleMean.toFixed(2)}% = ${bestPossibleMeanNormalized.toFixed(2)}/20</p>
+        `;
     }
 }
