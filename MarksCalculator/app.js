@@ -1,38 +1,68 @@
-const numMarksInput = document.getElementById('num-marks');
+const numTestsInput = document.getElementById('num-tests');
 const generateInputsBtn = document.getElementById('generate-inputs');
-const marksInputsContainer = document.getElementById('marks-inputs');
-const meanDisplay = document.getElementById('mean-display');
+const testsInputsContainer = document.getElementById('tests-inputs');
+const resultDisplay = document.getElementById('result-display');
 
 generateInputsBtn.addEventListener('click', generateInputBoxes);
 
 function generateInputBoxes() {
-    const numMarks = parseInt(numMarksInput.value);
-    if (isNaN(numMarks) || numMarks < 1) {
+    const numTests = parseInt(numTestsInput.value);
+    if (isNaN(numTests) || numTests < 1) {
         alert('Please enter a valid number greater than 0.');
         return;
     }
 
-    marksInputsContainer.innerHTML = '';
-    const inputBoxes = [];
+    testsInputsContainer.innerHTML = '';
+    const inputGroups = [];
 
-    for (let i = 0; i < numMarks; i++) {
-        const input = document.createElement('input');
-        input.type = 'number';
-        input.placeholder = `Mark ${i + 1}`;
-        marksInputsContainer.appendChild(input);
-        inputBoxes.push(input);
+    for (let i = 0; i < numTests; i++) {
+        const group = document.createElement('div');
+        group.classList.add('input-group');
+
+        const markInput = document.createElement('input');
+        markInput.type = 'number';
+        markInput.placeholder = `Mark ${i + 1}`;
+        group.appendChild(markInput);
+
+        const maxMarkInput = document.createElement('input');
+        maxMarkInput.type = 'number';
+        maxMarkInput.placeholder = `Max Mark ${i + 1}`;
+        group.appendChild(maxMarkInput);
+
+        const weightInput = document.createElement('input');
+        weightInput.type = 'number';
+        weightInput.placeholder = `Weight ${i + 1}`;
+        group.appendChild(weightInput);
+
+        testsInputsContainer.appendChild(group);
+        inputGroups.push([markInput, maxMarkInput, weightInput]);
     }
 
-    const calculateMeanBtn = document.createElement('button');
-    calculateMeanBtn.textContent = 'Calculate Mean';
-    calculateMeanBtn.addEventListener('click', calculateMean.bind(null, inputBoxes));
-    marksInputsContainer.appendChild(calculateMeanBtn);
+    const calculateBtn = document.createElement('button');
+    calculateBtn.textContent = 'Calculate Result';
+    calculateBtn.addEventListener('click', calculateResult.bind(null, inputGroups));
+    testsInputsContainer.appendChild(calculateBtn);
 }
 
-function calculateMean(inputBoxes) {
-    const marks = inputBoxes.map(input => parseFloat(input.value));
-    const validMarks = marks.filter(mark => !isNaN(mark));
-    const sum = validMarks.reduce((total, mark) => total + mark, 0);
-    const mean = sum / validMarks.length;
-    meanDisplay.textContent = `Mean: ${mean.toFixed(2)}`;
+function calculateResult(inputGroups) {
+    let result = 0;
+    let totalWeight = 0;
+
+    for (const [markInput, maxMarkInput, weightInput] of inputGroups) {
+        const mark = parseFloat(markInput.value);
+        const maxMark = parseFloat(maxMarkInput.value);
+        const weight = parseFloat(weightInput.value);
+
+        if (!isNaN(mark) && !isNaN(maxMark) && !isNaN(weight) && maxMark > 0) {
+            const weightedMark = (mark / maxMark) * weight;
+            result += weightedMark;
+            totalWeight += weight;
+        }
+    }
+
+    if (totalWeight === 0) {
+        resultDisplay.textContent = 'Invalid input data.';
+    } else {
+        resultDisplay.textContent = `Result: ${(result / totalWeight * 100).toFixed(2)}%`;
+    }
 }
